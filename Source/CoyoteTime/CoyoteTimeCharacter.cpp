@@ -137,9 +137,10 @@ void ACoyoteTimeCharacter::CoyoteJump()
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		Jump();
+		bAlreadyJumped = true;
 	}
 	// Coyote time jump
-	else if (bCanUseCoyoteTime)
+	else if (bCanUseCoyoteTime && !bAlreadyJumped)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("CoyoteJump Triggered!"));
 		LaunchCharacter(FVector(0.f, 0.f, GetCharacterMovement()->JumpZVelocity), false, true);
@@ -155,6 +156,7 @@ void ACoyoteTimeCharacter::Landed(const FHitResult& Hit)
 
 	TimeSinceLeftGround = 0.0f;
 	bCanUseCoyoteTime = false;
+	bAlreadyJumped = false;
 }
 
 void ACoyoteTimeCharacter::Tick(float DeltaTime)

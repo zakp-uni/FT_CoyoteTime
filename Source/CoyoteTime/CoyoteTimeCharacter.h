@@ -56,6 +56,8 @@ protected:
 	float TimeSinceLeftGround = 0.0f;
 	bool bCanUseCoyoteTime = false;
 
+	bool bAlreadyJumped = false;
+
 	// function to update and track our Coyote Time Window
 	void UpdateCoyoteTime(float DeltaTime);
 
