@@ -78,7 +78,7 @@ void ACoyoteTimeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACoyoteTimeCharacter::CoyoteJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
@@ -126,5 +126,70 @@ void ACoyoteTimeCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ACoyoteTimeCharacter::CoyoteJump()
+{
+	// Code for jumping after walking off surface
+
+	// Normal grounded jump
+	if (GetCharacterMovement()->IsMovingOnGround())
+	{
+		Jump();
+	}
+	// Coyote time jump
+	else if (bCanUseCoyoteTime)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, TEXT("CoyoteJump Triggered!"));
+		LaunchCharacter(FVector(0.f, 0.f, GetCharacterMovement()->JumpZVelocity), false, true);
+		bCanUseCoyoteTime = false; // consume it
+	}
+}
+
+void ACoyoteTimeCharacter::Landed(const FHitResult& Hit)
+{
+	// Code to tell when the character is on the ground
+
+	Super::Landed(Hit);
+
+	TimeSinceLeftGround = 0.0f;
+	bCanUseCoyoteTime = false;
+}
+
+void ACoyoteTimeCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateCoyoteTime(DeltaTime);
+}
+
+void ACoyoteTimeCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	// If we were walking and now we're falling,
+	// that means we just stepped off a ledge
+	if (PrevMovementMode == MOVE_Walking && GetCharacterMovement()->IsFalling())
+	{
+		TimeSinceLeftGround = 0.0f;
+		bCanUseCoyoteTime = true;
+	}
+}
+
+void ACoyoteTimeCharacter::UpdateCoyoteTime(float DeltaTime)
+{
+	if (!GetCharacterMovement()->IsMovingOnGround())
+	{
+		TimeSinceLeftGround += DeltaTime;
+
+		if (TimeSinceLeftGround > CoyoteTimeDuration)
+		{
+			bCanUseCoyoteTime = false;
+		}
+		else
+		{
+			bCanUseCoyoteTime = true;
+		}
 	}
 }

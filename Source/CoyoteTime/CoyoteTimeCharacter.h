@@ -46,14 +46,26 @@ class ACoyoteTimeCharacter : public ACharacter
 
 public:
 	ACoyoteTimeCharacter();
+	void CoyoteJump();
+	void Landed(const FHitResult& Hit) override;
+	void Tick(float DeltaTime) override;
 
 protected:
+	// track the Coyote time jump
+	float CoyoteTimeDuration = 0.2f; // coyote time jump limit
+	float TimeSinceLeftGround = 0.0f;
+	bool bCanUseCoyoteTime = false;
+
+	// function to update and track our Coyote Time Window
+	void UpdateCoyoteTime(float DeltaTime);
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 			
 
 protected:
@@ -62,6 +74,7 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
 
 public:
 	/** Returns CameraBoom subobject **/
